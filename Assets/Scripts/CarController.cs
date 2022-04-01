@@ -9,6 +9,14 @@ public class CarController : MonoBehaviour
     [SerializeField] Rigidbody rb;
 
     bool isAccel;
+    bool isReversing;
+
+    float direction;
+    public float rotationAmount;
+    public float driveSpeed;
+    public float minimumSpeed;
+    public float maximumSpeed;
+
     
 
     private void Start()
@@ -24,22 +32,48 @@ public class CarController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        #region Car acceleration and reversing
         if (isAccel)
         {
-            rb.MovePosition(transform.position + new Vector3 (0, 0, 2));
+            if(driveSpeed < 76)
+            {
+                driveSpeed = Mathf.Lerp(driveSpeed, maximumSpeed, Time.fixedDeltaTime);
+                rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
+            }
+            else
+            {
+                driveSpeed = Mathf.Lerp(driveSpeed, maximumSpeed, 2f);
+                rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
+            }
         }
+        else
+        {
+            if(driveSpeed > 5)
+            {
+                driveSpeed = Mathf.Lerp(driveSpeed, minimumSpeed, Time.fixedDeltaTime);
+                rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
+            }
+            else
+            {
+                driveSpeed = 0;
+            }
+        }
+        if (isReversing)
+        {
+            driveSpeed = Mathf.Lerp(driveSpeed, minimumSpeed,  1.5f * Time.deltaTime);
+            rb.MovePosition(transform.position + transform.forward * driveSpeed * Time.fixedDeltaTime);
+        }
+
+        direction = Input.GetAxisRaw("Horizontal");
+        transform.Rotate(0, direction * rotationAmount * Time.fixedDeltaTime, 0);
+
+        print(direction);
+        #endregion
     }
 
     private void CheckInput()
     {
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            isAccel = true;
-            
-        }
-        else
-        {
-            isAccel = false;
-        }
+        isAccel = Input.GetKey(KeyCode.W);
+        isReversing = Input.GetKey(KeyCode.S);
     }
 }
